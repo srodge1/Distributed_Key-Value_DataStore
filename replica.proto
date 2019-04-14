@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+
+message GetKey {
+  uint32 key = 1;
+  uint32 from_client = 2; // 0:request from other replica server ; 1:req from client
+  string consistency_level = 3;
+  string from_rep = 4;    // for looking into hints
+}
+
+message PutKey {
+  uint32 key = 1;
+  string value = 2;
+  uint32 from_client = 3; // 0:request from other replica server ; 1:req from client
+  string timestamp = 4;  // set by co-ordinator only no other replicas
+  string consistency_level = 5;
+  string from_rep = 6;    // for looking into hints
+}
+
+message CordResponse{
+  uint32 value_present = 1; // 0:No ; 1:Yes if value present with the given key
+                            // 2: value present on less than 3 replicas. through error(client or replica????)
+                            // consistency_level didn't match, so through error
+  string value        = 2;
+  uint32 ack          = 3;  // 0:nack through exception ; 1:ack use only with PutKey
+}
+
+message ReplicaResponse{
+  uint32 is_updated = 1;    // 0:No ; 1:Yes for write request from replica only
+  uint32 value_present = 2; // 0:No ; 1:Yes if value present with the given key for read
+  string value = 3;
+  string timestamp = 4;     // datetime object as a string
+  string from_rep  = 5;     // for read repai list
+}
+
+message ReplicaMessage {
+  oneof replica_message {
+    GetKey get_key = 1;
+    PutKey put_key = 2;
+    CordResponse cord_response = 3;
+    ReplicaResponse replica_response = 4;
+  }
+}
